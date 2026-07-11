@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messenger UI · HTML + JS</title>
+  <!-- Font Awesome 6 (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #0b1a2e 0%, #1b2f44 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* main card – messenger panel */
+    .messenger-card {
+      width: 100%;
+      max-width: 420px;
+      height: 700px;
+      background: #f0f2f5;
+      border-radius: 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(2px);
+      transition: transform 0.2s ease;
+    }
+
+    /* ----- header ----- */
+    .messenger-header {
+      background: #ffffff;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #2a6df4, #1a4bbf);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-info h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1c1e21;
+      letter-spacing: -0.2px;
+    }
+
+    .chat-info span {
+      font-size: 13px;
+      color: #65676b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chat-info span i {
+      font-size: 10px;
+      color: #31a24c;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 18px;
+      color: #5f6368;
+      font-size: 18px;
+    }
+
+    .header-actions i {
+      cursor: default;
+      transition: color 0.15s;
+    }
+
+    .header-actions i:hover {
+      color: #1b2f44;
+    }
+
+    /* ----- messages container ----- */
+    .messages-container {
+      flex: 1;
+      padding: 18px 16px 8px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #f0f2f5;
+      scroll-behavior: smooth;
+    }
+
+    /* custom scroll */
+    .messages-container::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .messages-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb {
+      background: #b0b3b8;
+      border-radius: 12px;
+    }
+
+    /* message bubbles */
+    .message {
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: 20px;
+      font-size: 15px;
+      line-height: 1.45;
+      word-break: break-word;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      animation: fadeUp 0.2s ease;
+      position: relative;
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.sent {
+      align-self: flex-end;
+      background: #0084ff;
+      color: white;
+      border-bottom-right-radius: 6px;
+      background: linear-gradient(145deg, #0084ff, #006fdb);
+    }
+
+    .message.received {
+      align-self: flex-start;
+      background: white;
+      color: #1c1e21;
+      border-bottom-left-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .message .msg-time {
+      font-size: 10px;
+      opacity: 0.6;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      letter-spacing: 0.2px;
+    }
+
+    .message.sent .msg-time {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .message.received .msg-time {
+      color: #65676b;
+    }
+
+    .message .msg-time i {
+      font-size: 9px;
+    }
+
+    /* date divider */
+    .date-divider {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: #65676b;
+      background: #e4e6eb;
+      padding: 5px 16px;
+      border-radius: 40px;
+      align-self: center;
+      margin: 6px 0 4px 0;
+      letter-spacing: 0.3px;
+      background: rgba(228, 230, 235, 0.7);
+      backdrop-filter: blur(4px);
+    }
+
+    /* ----- input area ----- */
+    .input-area {
+      background: #ffffff;
+      padding: 12px 18px 16px 18px;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      background: #f0f2f5;
+      border-radius: 30px;
+      padding: 4px 10px 4px 18px;
+      border: 1px solid transparent;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: #0084ff;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(0, 132, 255, 0.15);
+    }
+
+    #messageInput {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px 0;
+      font-size: 15px;
+      outline: none;
+      resize: none;
+      max-height: 110px;
+      color: #1c1e21;
+      font-family: inherit;
+    }
+
+    #messageInput::placeholder {
+      color: #8a8d91;
+      font-weight: 400;
+    }
+
+    .input-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+    }
+
+    .input-actions button {
+      background: transparent;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #5f6368;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .input-actions button:hover {
+      background: #e4e6eb;
+      color: #1b2f44;
+    }
+
+    .input-actions .send-btn {
+      background: #0084ff;
+      color: white;
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+      box-shadow: 0 4px 8px rgba(0, 132, 255, 0.25);
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .input-actions .send-btn:hover {
+      background: #006fdb;
+      color: white;
+    }
+
+    .input-actions .send-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* small footer */
+    .footer-tip {
+      text-align: center;
+      font-size: 10px;
+      color: #8a8d91;
+      padding: 4px 0 6px 0;
+      background: #ffffff;
+      border-top: 1px solid rgba(0, 0, 0, 0.02);
+      letter-spacing: 0.2px;
+    }
+
+    .footer-tip i {
+      margin: 0 4px;
+    }
+
+    /* responsive */
+    @media (max-width: 480px) {
+      .messenger-card {
+        height: 95vh;
+        max-height: 750px;
+        border-radius: 24px;
+      }
+      .header-left .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="messenger-card">
+
+  <!-- Header -->
+  <div class="messenger-header">
+    <div class="header-left">
+      <div class="avatar">JD</div>
+      <div class="chat-info">
+        <h3>James Diaz</h3>
+        <span><i class="fas fa-circle" style="color: #31a24c; font-size: 8px;"></i> Online · 2 min ago</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <i class="fas fa-phone-alt"></i>
+      <i class="fas fa-video"></i>
+      <i class="fas fa-ellipsis-v"></i>
+    </div>
+  </div>
+
+  <!-- Messages container -->
+  <div class="messages-container" id="messagesContainer">
+    <!-- date divider -->
+    <div class="date-divider">Today</div>
+
+    <!-- received message -->
+    <div class="message received">
+      Hey! How's it going? 👋
+      <div class="msg-time"><span>11:28</span> <i class="fas fa-check"></i></div>
+    </div>
+
+    <!-- sent message -->
+    <div class="message sent">
+      All good! Just wrapping up the UI mockup. You?
+      <div class="msg-time"><span>11:31</span> <i class="fas fa-check-double"></i></div>
+    </div>
+
+    <!-- received -->
+    <div class="message received">
+      Nice! I’m reviewing the new messenger design. Looks clean.
+      <div class="msg-time"><span>11:33</span> <i class="fas fa-check"></i></div>
+    </div>
+
+    <!-- sent -->
+    <div class="message sent">
+      Thanks! I added some interactive elements. Check the input.
+      <div class="msg-time"><span>11:35</span> <i class="fas fa-check-double" style="color: #0084ff;"></i></div>
+    </div>
+
+    <!-- received -->
+    <div class="message received">
+      Works great! 🚀
+      <div class="msg-time"><span>11:37</span> <i class="fas fa-check"></i></div>
+    </div>
+  </div>
+
+  <!-- Input area -->
+  <div class="input-area">
+    <div class="input-wrapper">
+      <input type="text" id="messageInput" placeholder="Type a message..." autofocus>
+      <div class="input-actions">
+        <button aria-label="Emoji"><i class="far fa-smile"></i></button>
+        <button class="send-btn" id="sendButton" aria-label="Send"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+  <div class="footer-tip">
+    <i class="fas fa-lock" style="opacity: 0.4;"></i> End-to-end encrypted · <i class="far fa-clock"></i> last seen today
+  </div>
+</div>
+
+<script>
+  (function() {
+    // DOM elements
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
+    // ----- helper: get current time (HH:MM) -----
+    function getCurrentTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    // ----- helper: create a message element -----
+    function createMessageElement(text, type) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;   // 'sent' or 'received'
+
+      const textNode = document.createTextNode(text);
+      messageDiv.appendChild(textNode);
+
+      // time + status
+      const timeDiv = document.createElement('div');
+      timeDiv.className = 'msg-time';
+
+      const timeSpan = document.createElement('span');
+      timeSpan.textContent = getCurrentTime();
+
+      const icon = document.createElement('i');
+      if (type === 'sent') {
+        icon.className = 'fas fa-check-double';
+        icon.style.color = '#0084ff';  // seen
+      } else {
+        icon.className = 'fas fa-check';
+        icon.style.color = 'rgba(255,255,255,0.5)';
+        // received messages keep icon light (but we invert for white bg)
+        // we adjust via css: .message.received .msg-time i color is #65676b, so we don't override.
+        // we'll set a different approach: for received, we want the check mark visible.
+        // we'll just use the same icon but style differently via CSS
+        // force remove inline color for received messages.
+        icon.style.color = ''; // let css handle
+      }
+
+      timeDiv.appendChild(timeSpan);
+      timeDiv.appendChild(icon);
+      messageDiv.appendChild(timeDiv);
+
+      // for received messages, we want the check icon to be visible (css handles color)
+      if (type === 'received') {
+        // make sure icon has the right class and we don't set inline color
+        icon.style.color = ''; 
+        // but we need to ensure the icon is visible: use css default 
+      }
+
+      return messageDiv;
+    }
+
+    // ----- add a new message (sent by user) -----
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (text === '') {
+        // subtle feedback: shake? or just ignore
+        messageInput.style.borderColor = '#ff4d4f';
+        setTimeout(() => { messageInput.style.borderColor = ''; }, 300);
+        return;
+      }
+
+      // create sent message
+      const sentMsg = createMessageElement(text, 'sent');
+      messagesContainer.appendChild(sentMsg);
+      
+      // clear input
+      messageInput.value = '';
+      messageInput.focus();
+
+      // scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // ---- simulate received reply (after 1.2~2.5 sec) ----
+      const replyDelay = 800 + Math.random() * 1500; // 0.8s - 2.3s
+
+      // random auto-replies
+      const replies = [
+        'That sounds great! 😊',
+        'I agree with you!',
+        'Interesting, tell me more.',
+        'Got it! 👍',
+        'Haha, nice one!',
+        'Sure, let’s do that.',
+        'Perfect! 🚀',
+        'I’ll check it out.',
+        'Thanks for sharing!',
+        'Awesome! 😎'
+      ];
+
+      // random pick
+      const randomReply = replies[Math.floor(Math.random() * replies.length)];
+
+      setTimeout(() => {
+        // but only if the container still exists and we want to add
+        if (!messagesContainer) return;
+
+        const receivedMsg = createMessageElement(randomReply, 'received');
+        messagesContainer.appendChild(receivedMsg);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, replyDelay);
+    }
+
+    // ----- event listeners -----
+    sendButton.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();   // avoid line break
+        sendMessage();
+      }
+    });
+
+    // optional: click on emoji button (just for fun – shows placeholder)
+    document.querySelector('.input-actions button[aria-label="Emoji"]')?.addEventListener('click', function(e) {
+      e.preventDefault();
+      messageInput.value += ' 😊';
+      messageInput.focus();
+    });
+
+    // small UX: focus input on load
+    window.addEventListener('load', () => {
+      messageInput.focus();
+    });
+
+    // extra: if the user clicks on the container, focus input
+    messagesContainer.addEventListener('click', () => {
+      messageInput.focus();
+    });
+
+    // (optional) double-click on message to log (for demo)
+    // no-op, just for fun
+    console.log('✅ Messenger UI ready – type and hit send!');
+  })();
+</script>
+
+</body>
+</html>
